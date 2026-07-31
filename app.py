@@ -76,26 +76,128 @@ scaler, model = load_artifacts()
 st.markdown(
     """
     <style>
-    h1 {
-        margin-bottom: 0.85rem !important;
-        padding-bottom: 0.15rem !important;
+    :root {
+        --bg: #f6f7f9;
+        --surface: #ffffff;
+        --text: #111827;
+        --muted: #6b7280;
+        --line: #e5e7eb;
+        --primary: #315a9a;
+        --primary-strong: #28487a;
+        --radius: 12px;
+        --space-sm: 0.5rem;
+        --space-md: 0.9rem;
+        --space-lg: 1.25rem;
     }
+
+    .stApp {
+        background: var(--bg);
+        color: var(--text);
+    }
+
+    [data-testid="stAppViewContainer"] {
+        background: var(--bg);
+    }
+
+    [data-testid="stHeader"] {
+        background: transparent;
+    }
+
+    .block-container {
+        padding-top: 2.2rem !important;
+        padding-bottom: 1.8rem !important;
+    }
+
+    h1, h2, h3 {
+        color: var(--text);
+        letter-spacing: -0.01em;
+    }
+
+    h1 {
+        margin-bottom: 0.25rem !important;
+        font-weight: 700;
+    }
+
+    [data-testid="stMarkdownContainer"] p {
+        color: var(--muted);
+        line-height: 1.5;
+    }
+
+    .stTextInput > div > div > input,
+    .stNumberInput input,
+    .stSelectbox [data-baseweb="select"] > div {
+        background: var(--surface) !important;
+        border: 1px solid var(--line) !important;
+        border-radius: 10px !important;
+    }
+
+    .stNumberInput input:focus,
+    .stTextInput > div > div > input:focus {
+        border-color: var(--primary) !important;
+        box-shadow: 0 0 0 2px rgba(49, 90, 154, 0.2) !important;
+    }
+
+    .stSelectbox [data-baseweb="select"]:focus-within > div {
+        border-color: var(--primary) !important;
+        box-shadow: 0 0 0 2px rgba(49, 90, 154, 0.2) !important;
+    }
+
+    .stMetric {
+        background: var(--surface);
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        padding: var(--space-md);
+    }
+
+    [data-testid="stMetricLabel"] {
+        color: var(--muted);
+    }
+
     div.stButton > button[kind="primary"],
     div.stButton > button[data-testid="stBaseButton-primary"] {
-        background-color: #001F5B !important;
-        border-color: #001F5B !important;
+        background-color: var(--primary) !important;
+        border: 1px solid var(--primary) !important;
+        border-radius: 10px !important;
         color: white !important;
-        font-size: 1.15rem !important;
+        font-size: 1rem !important;
         font-weight: 600 !important;
-        padding: 0.7rem 2.4rem !important;
-        min-height: 3rem !important;
+        padding: 0.65rem 1rem !important;
+        min-height: 2.75rem !important;
         width: 100%;
     }
+
     div.stButton > button[kind="primary"]:hover,
     div.stButton > button[data-testid="stBaseButton-primary"]:hover {
-        background-color: #001440 !important;
-        border-color: #001440 !important;
+        background-color: var(--primary-strong) !important;
+        border-color: var(--primary-strong) !important;
         color: white !important;
+    }
+
+    div.stButton > button:focus-visible {
+        outline: 2px solid rgba(49, 90, 154, 0.45) !important;
+        outline-offset: 2px !important;
+    }
+
+    .prediction-card {
+        border: 1px solid var(--line);
+        border-left: 4px solid var(--primary);
+        border-radius: var(--radius);
+        background: var(--surface);
+        padding: var(--space-md) var(--space-lg);
+        margin: var(--space-sm) 0 var(--space-lg) 0;
+    }
+
+    .prediction-helper {
+        font-size: 0.9rem;
+        color: var(--muted);
+        margin: 0;
+    }
+
+    .prediction-title {
+        font-size: 1.6rem;
+        font-weight: 700;
+        color: var(--text);
+        margin: 0.3rem 0 0 0;
     }
     </style>
     """,
@@ -103,10 +205,11 @@ st.markdown(
 )
 
 st.title("Churn Prediction App")
-st.write("Enter customer details and click Predict to get a churn prediction")
+st.markdown("Enter customer details to estimate churn risk.")
 
 st.divider()
 
+st.subheader("Customer details")
 col1, col2 = st.columns(2)
 with col1:
     age = st.number_input("Age", min_value=10, max_value=100, value=30)
@@ -128,7 +231,7 @@ st.caption(
 
 st.divider()
 
-predict_button = st.button("Predict!", type="primary", use_container_width=True)
+predict_button = st.button("Predict churn risk", type="primary", use_container_width=True)
 
 if predict_button:
     gender_selected = 1 if gender == "Female" else 0
@@ -143,25 +246,17 @@ if predict_button:
     churn_prob = float(probabilities[1])
 
     if prediction == 1:
-        outcome_icon = "🔴"
-        outcome_label = "Churn"
-        outcome_color = "#800020"  # burgundy
+        outcome_icon = "⚠"
+        outcome_label = "Customer is likely to churn"
     else:
-        outcome_icon = "🟢"
-        outcome_label = "Stay"
-        outcome_color = "#808000"  # olive
+        outcome_icon = "✓"
+        outcome_label = "Customer is likely to stay"
 
-    # Prediction first — large summary users see immediately
     st.markdown(
         f"""
-        <div style="margin: 0.5rem 0 1.25rem 0;">
-            <p style="font-size: 1.15rem; margin-bottom: 0.35rem; color: #6B7280;">
-                {outcome_icon} Prediction
-            </p>
-            <p style="font-size: 2rem; font-weight: 700; margin: 0.2rem 0 0.5rem 0;
-                      color: {outcome_color}; line-height: 1.25;">
-                Customer is likely to {outcome_label}
-            </p>
+        <div class="prediction-card">
+            <p class="prediction-helper">{outcome_icon} Prediction</p>
+            <p class="prediction-title">{outcome_label}</p>
         </div>
         """,
         unsafe_allow_html=True,
@@ -192,13 +287,13 @@ if predict_button:
                 "Probability:Q",
                 title="Probability",
                 scale=alt.Scale(domain=[0, 1]),
-                axis=alt.Axis(format=".0%"),
+                axis=alt.Axis(format=".0%", grid=True, gridColor="#e5e7eb"),
             ),
             color=alt.Color(
                 "Outcome:N",
                 scale=alt.Scale(
                     domain=["Stay", "Churn"],
-                    range=["#808000", "#800020"],
+                    range=["#9ca3af", "#315a9a"],
                 ),
                 legend=None,
             ),
@@ -208,7 +303,7 @@ if predict_button:
             ],
         )
         .properties(height=280)
-        .configure_axis(grid=False)
+        .configure_axis(labelColor="#374151", titleColor="#374151")
         .configure_view(strokeWidth=0)
     )
     st.altair_chart(chart, use_container_width=True)
