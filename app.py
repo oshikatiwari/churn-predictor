@@ -17,6 +17,9 @@ from sklearn.preprocessing import StandardScaler
 
 FEATURE_COLS = ["Age", "Gender", "Tenure", "MonthlyCharges"]
 ROOT = Path(__file__).resolve().parent
+ACCENT_COLOR = "#4F46E5"
+TEXT_PRIMARY = "#0F172A"
+TEXT_MUTED = "#475569"
 
 st.set_page_config(page_title="Churn Prediction App", page_icon="📉")
 
@@ -76,42 +79,87 @@ scaler, model = load_artifacts()
 st.markdown(
     """
     <style>
+    .stApp {
+        background: #F1F5F9;
+        color: #0F172A;
+    }
+    .block-container {
+        max-width: 860px;
+        padding-top: 2rem;
+        padding-bottom: 2.5rem;
+    }
+    h1, h2, h3 {
+        color: #0F172A;
+        letter-spacing: -0.01em;
+    }
     h1 {
-        margin-bottom: 0.85rem !important;
-        padding-bottom: 0.15rem !important;
+        margin-bottom: 0.3rem !important;
+        font-weight: 700 !important;
+    }
+    p {
+        color: #334155;
+    }
+    .surface-card {
+        background: #F8FAFC;
+        border: 1px solid #E2E8F0;
+        border-radius: 12px;
+        padding: 1rem 1rem 0.4rem;
+        margin: 0.7rem 0 1rem;
+    }
+    [data-testid="stNumberInput"] input,
+    [data-testid="stSelectbox"] div[data-baseweb="select"] > div {
+        border-radius: 10px !important;
+        border-color: #CBD5E1 !important;
+        background: white !important;
+    }
+    [data-testid="stNumberInput"] input:focus,
+    [data-testid="stSelectbox"] div[data-baseweb="select"] > div:focus-within {
+        border-color: #4F46E5 !important;
+        box-shadow: 0 0 0 0.2rem rgba(79, 70, 229, 0.18) !important;
     }
     div.stButton > button[kind="primary"],
     div.stButton > button[data-testid="stBaseButton-primary"] {
-        background-color: #001F5B !important;
-        border-color: #001F5B !important;
+        background-color: #4F46E5 !important;
+        border-color: #4F46E5 !important;
         color: white !important;
-        font-size: 1.15rem !important;
+        font-size: 1rem !important;
         font-weight: 600 !important;
-        padding: 0.7rem 2.4rem !important;
-        min-height: 3rem !important;
+        border-radius: 10px !important;
+        padding: 0.6rem 1rem !important;
+        min-height: 2.8rem !important;
         width: 100%;
     }
     div.stButton > button[kind="primary"]:hover,
     div.stButton > button[data-testid="stBaseButton-primary"]:hover {
-        background-color: #001440 !important;
-        border-color: #001440 !important;
+        background-color: #4338CA !important;
+        border-color: #4338CA !important;
         color: white !important;
+    }
+    div.stButton > button:focus-visible {
+        box-shadow: 0 0 0 0.2rem rgba(79, 70, 229, 0.2) !important;
+        outline: none !important;
+    }
+    [data-testid="stMetric"] {
+        background: #F8FAFC;
+        border: 1px solid #E2E8F0;
+        border-radius: 12px;
+        padding: 0.7rem 0.85rem;
     }
     </style>
     """,
     unsafe_allow_html=True,
 )
 
-st.title("Churn Prediction App")
-st.write("Enter customer details and click Predict to get a churn prediction")
+st.title("Customer Churn Predictor")
+st.write("Enter customer details to estimate whether this customer is likely to stay or churn.")
 
-st.divider()
+st.markdown('<div class="surface-card">', unsafe_allow_html=True)
 
-col1, col2 = st.columns(2)
-with col1:
+demographics_col, billing_col = st.columns(2)
+with demographics_col:
     age = st.number_input("Age", min_value=10, max_value=100, value=30)
     tenure = st.number_input("Tenure (months)", min_value=0, max_value=130, value=10)
-with col2:
+with billing_col:
     monthly_charge = st.number_input(
         "Monthly Charge",
         min_value=30,
@@ -126,39 +174,36 @@ st.caption(
     "Longer tenure is generally associated with lower churn risk."
 )
 
-st.divider()
+st.markdown("</div>", unsafe_allow_html=True)
 
-predict_button = st.button("Predict!", type="primary", use_container_width=True)
+predict_clicked = st.button("Predict", type="primary", use_container_width=True)
 
-if predict_button:
+if predict_clicked:
     gender_selected = 1 if gender == "Female" else 0
-    features = pd.DataFrame(
+    feature_frame = pd.DataFrame(
         [[age, gender_selected, tenure, monthly_charge]],
         columns=FEATURE_COLS,
     )
-    x_scaled = scaler.transform(features)
+    x_scaled = scaler.transform(feature_frame)
     prediction = int(model.predict(x_scaled)[0])
     probabilities = model.predict_proba(x_scaled)[0]
     stay_prob = float(probabilities[0])
     churn_prob = float(probabilities[1])
 
     if prediction == 1:
-        outcome_icon = "🔴"
         outcome_label = "Churn"
-        outcome_color = "#800020"  # burgundy
+        outcome_color = ACCENT_COLOR
     else:
-        outcome_icon = "🟢"
         outcome_label = "Stay"
-        outcome_color = "#808000"  # olive
+        outcome_color = TEXT_PRIMARY
 
-    # Prediction first — large summary users see immediately
     st.markdown(
         f"""
-        <div style="margin: 0.5rem 0 1.25rem 0;">
-            <p style="font-size: 1.15rem; margin-bottom: 0.35rem; color: #6B7280;">
-                {outcome_icon} Prediction
+        <div class="surface-card" style="margin-top: 1rem; padding-top: 0.8rem;">
+            <p style="font-size: 0.95rem; margin-bottom: 0.35rem; color: {TEXT_MUTED};">
+                Prediction
             </p>
-            <p style="font-size: 2rem; font-weight: 700; margin: 0.2rem 0 0.5rem 0;
+            <p style="font-size: 1.9rem; font-weight: 700; margin: 0.2rem 0 0.5rem 0;
                       color: {outcome_color}; line-height: 1.25;">
                 Customer is likely to {outcome_label}
             </p>
@@ -168,9 +213,9 @@ if predict_button:
     )
 
     st.subheader("Prediction summary")
-    m1, m2 = st.columns(2)
-    m1.metric("Stay Probability", f"{stay_prob:.1%}")
-    m2.metric("Churn Probability", f"{churn_prob:.1%}")
+    stay_metric_col, churn_metric_col = st.columns(2)
+    stay_metric_col.metric("Stay Probability", f"{stay_prob:.1%}")
+    churn_metric_col.metric("Churn Probability", f"{churn_prob:.1%}")
 
     chart_df = pd.DataFrame(
         {
@@ -198,7 +243,7 @@ if predict_button:
                 "Outcome:N",
                 scale=alt.Scale(
                     domain=["Stay", "Churn"],
-                    range=["#808000", "#800020"],
+                    range=["#94A3B8", ACCENT_COLOR],
                 ),
                 legend=None,
             ),
@@ -208,9 +253,9 @@ if predict_button:
             ],
         )
         .properties(height=280)
-        .configure_axis(grid=False)
+        .configure_axis(gridColor="#E2E8F0")
         .configure_view(strokeWidth=0)
     )
     st.altair_chart(chart, use_container_width=True)
 else:
-    st.info("Enter values above, then click **Predict!**")
+    st.info("Enter values above, then click **Predict**.")
