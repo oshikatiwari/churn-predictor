@@ -20,6 +20,7 @@ ROOT = Path(__file__).resolve().parent
 ACCENT_COLOR = "#4F46E5"
 TEXT_PRIMARY = "#0F172A"
 TEXT_MUTED = "#475569"
+SURFACE_BORDER = "#E2E8F0"
 
 st.set_page_config(page_title="Churn Prediction App", page_icon="📉")
 
@@ -103,8 +104,16 @@ st.markdown(
         background: #F8FAFC;
         border: 1px solid #E2E8F0;
         border-radius: 12px;
-        padding: 1rem 1rem 0.4rem;
-        margin: 0.7rem 0 1rem;
+        padding: 1.1rem 1rem 0.6rem;
+        margin: 0.8rem 0 1rem;
+    }
+    .section-label {
+        margin: 0 0 0.55rem 0;
+        color: #475569;
+        font-size: 0.78rem;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        font-weight: 600;
     }
     [data-testid="stNumberInput"] input,
     [data-testid="stSelectbox"] div[data-baseweb="select"] > div {
@@ -145,6 +154,10 @@ st.markdown(
         border-radius: 12px;
         padding: 0.7rem 0.85rem;
     }
+    [data-testid="stAlert"] {
+        border-radius: 10px;
+        border: 1px solid #E2E8F0;
+    }
     </style>
     """,
     unsafe_allow_html=True,
@@ -152,8 +165,10 @@ st.markdown(
 
 st.title("Customer Churn Predictor")
 st.write("Enter customer details to estimate whether this customer is likely to stay or churn.")
+st.caption("Simple inputs. Fast prediction. Clear confidence view.")
 
 st.markdown('<div class="surface-card">', unsafe_allow_html=True)
+st.markdown('<p class="section-label">Customer profile</p>', unsafe_allow_html=True)
 
 demographics_col, billing_col = st.columns(2)
 with demographics_col:
@@ -212,7 +227,7 @@ if predict_clicked:
         unsafe_allow_html=True,
     )
 
-    st.subheader("Prediction summary")
+    st.markdown('<p class="section-label">Prediction summary</p>', unsafe_allow_html=True)
     stay_metric_col, churn_metric_col = st.columns(2)
     stay_metric_col.metric("Stay Probability", f"{stay_prob:.1%}")
     churn_metric_col.metric("Churn Probability", f"{churn_prob:.1%}")
@@ -253,7 +268,7 @@ if predict_clicked:
             ],
         )
         .properties(height=280)
-        .configure_axis(gridColor="#E2E8F0")
+        .configure_axis(gridColor=SURFACE_BORDER)
         .configure_view(strokeWidth=0)
     )
     st.altair_chart(chart, use_container_width=True)
